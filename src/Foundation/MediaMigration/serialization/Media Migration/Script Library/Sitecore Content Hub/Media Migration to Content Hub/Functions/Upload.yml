@@ -19,14 +19,17 @@ SharedFields:
             Write-Verbose "Upload - Begin"
             Import-Function Authenticate
             Import-Function Send-HttpRequest
+    		Import-Function GeneratePublicURL
     		
             $uploadsettings = New-Object PSObject @{
                 HostUri = "https://ps-ch-playground.sitecoresandbox.cloud"
                 TokenItem = "master:/sitecore/system/Settings/Project/token"
             }
             $hostUri = $uploadsettings.HostUri
-            
+            $chAssetId=""
+    		$chAssetIdentifier=""
             $itemPath = $item.Paths.FullPath
+    		$itemName = $item.Name
             $DEFAULT_CHUNK_SIZE = 100000000000000
             Write-Log -Log Info "Starting the Upload for Item: $itemPath"
         }
@@ -165,6 +168,8 @@ SharedFields:
     			
     				#Checking if the Respose is good, or is there an error.
     				if($response.response.StatusCode -eq "OK") {
+    					$chAssetId = $response.content.asset_id
+    					$chAssetIdentifier = $response.content.asset_identifier
     					$result = New-Object PSObject @{
     						Link = $response.response.Headers.Location
     						AssetId = $response.content.asset_id
@@ -200,6 +205,14 @@ SharedFields:
     							Write-Log -Log Error response
     							Write-Log -Log Error $response.response
     							Write-Log -Log Error $response.content
+    						}
+    						else
+    						{
+    							
+    							#Sending the Request to Generate Public URL of entity
+    							GeneratePublicURL -token $token -hostname $hostUri -assetId $chAssetId -assetUrl $chAssetIdentifier
+    							Write-Log -Log Info $response.response
+    							Write-Log -Log Info $response.content													
     						}
     				
     					}
@@ -243,11 +256,11 @@ Languages:
         sitecore\tpanchal
     - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
       Hint: __Revision
-      Value: "a37f1365-2e39-47e7-adb3-9fdaaa32927e"
+      Value: "50b8d02d-2581-44fa-91f4-020cf8cc4a87"
     - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
       Hint: __Updated by
       Value: |
-        sitecore\varun
+        sitecore\Admin
     - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
       Hint: __Updated
-      Value: 20240302T203359Z
+      Value: 20240302T234047Z

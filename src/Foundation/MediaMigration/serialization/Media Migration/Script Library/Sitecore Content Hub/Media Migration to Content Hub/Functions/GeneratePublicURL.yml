@@ -1,0 +1,99 @@
+﻿---
+ID: "bb597891-ab3b-46dd-b583-5499935ee3e0"
+Parent: "6c950601-98fb-4f5d-8adb-0224a32df9b4"
+Template: "dd22f1b3-bd87-4db2-9e7d-f7a496888d43"
+Path: /sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub/Media Migration to Content Hub/Functions/GeneratePublicURL
+SharedFields:
+- ID: "b1a94ff0-6897-47c0-9c51-aa6acb80b1f0"
+  Hint: Script
+  Value: |
+    function GeneratePublicURL {
+        [CmdletBinding()]
+        param (        
+            [Parameter(Mandatory = $true, Position = 1)]
+            [String]$token,
+    		[Parameter(Mandatory = $true, Position = 1)]
+            [String]$hostName,
+    		[Parameter(Mandatory = $true, Position = 1)]
+            [String]$assetId,
+    		[Parameter(Mandatory = $true, Position = 1)]
+            [String]$assetUrl
+        )
+    
+        begin {
+            Write-Verbose "PublicLink Creation - Begin"
+            Import-Function Send-HttpRequest       
+        }
+    
+        process {
+            # Prepare request body
+    		Write-Verbose "Endpoint - $hostName/api/entitydefinitions/M.PublicLink"
+            $requestBody = @{
+                properties = @{
+                    RelativeUrl = $assetUrl
+                    Resource = "downloadOriginal"                                    
+                }
+                is_root_taxonomy_item = $false
+                is_path_root = $false
+                inherits_security = $true 							
+                entitydefinition = @{href = "$hostName/api/entitydefinitions/M.PublicLink"}
+                relations = @{
+                    AssetToPublicLink = @{
+                        parents = @(@{href="$hostName/api/entities/$assetId"}) # Replace assetId with the actual asset ID
+                    }
+                }
+            } | ConvertTo-Json -Depth 4
+    
+            # Display request body for debugging
+            Write-Verbose $requestBody
+            Write-Log -Log Info $requestBody
+    
+    		try {
+    			# Send POST request to create public link
+    			$response = Invoke-WebRequest -Uri "https://ps-ch-playground.sitecoresandbox.cloud/api/entitydefinitions/M.PublicLink/entities" -Method 'POST' -Body $requestBody -Headers @{"x-auth-token" = $token; "Content-Type" = "application/json"}
+    
+    			# Check response
+    			if ($response.StatusCode -eq 200) {
+    				Write-Host "Public link created successfully."
+    				Write-Host "Public link URL: $($response.Content)"
+    			} else {
+    				Write-Host "Failed to create public link. StatusCode: $($response.StatusCode)"
+    				Write-Host "Response Content: $($response.Content)"
+    			}
+    		} catch{
+    			$_
+    		}
+    		
+        }
+    
+        end {
+            Write-Verbose "PublicLink Creation - End"
+        }
+    }
+    
+Languages:
+- Language: en
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "25bed78c-4957-4165-998a-ca1b52f67497"
+      Hint: __Created
+      Value: 20240302T141250Z
+    - ID: "52807595-0f8f-4b20-8d2a-cb71d28c6103"
+      Hint: __Owner
+      Value: |
+        sitecore\Admin
+    - ID: "5dd74568-4d4b-44c1-b513-0af5f4cda34f"
+      Hint: __Created by
+      Value: |
+        sitecore\Admin
+    - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
+      Hint: __Revision
+      Value: "14e3c165-1e34-4246-bafe-6c1a0a05ae85"
+    - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
+      Hint: __Updated by
+      Value: |
+        sitecore\Admin
+    - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
+      Hint: __Updated
+      Value: 20240302T231527Z

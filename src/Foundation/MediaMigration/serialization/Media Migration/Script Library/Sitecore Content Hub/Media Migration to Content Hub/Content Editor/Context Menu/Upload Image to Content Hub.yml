@@ -11,10 +11,24 @@ SharedFields:
       <rule
         uid="{230230F5-F7AA-42CD-A528-E169779DCF24}">
         <conditions>
-          <condition
-            id="{7D5DA661-BEF9-441C-B1F7-D80DE3E0972F}"
-            uid="28EE31ABF5B24A7080ED924717F46BBC"
-            itemid="{3D6658D8-A0BF-4E75-B3E2-D050FABCF4E1}" />
+          <or
+            uid="B3B0CAE76FC8460F892C98A3DF199D3D">
+            <and
+              uid="5BD09BFE2A10414CBE75C296D348FE03">
+              <condition
+                id="{7D5DA661-BEF9-441C-B1F7-D80DE3E0972F}"
+                uid="28EE31ABF5B24A7080ED924717F46BBC"
+                itemid="{3D6658D8-A0BF-4E75-B3E2-D050FABCF4E1}" />
+              <condition
+                id="{5DE6D53E-EA62-4D17-8BDD-FEBCD80AC07B}"
+                uid="F4A8B5C95C6D4A63AF4F3C96F0FEA6EF"
+                templateid="{F1828A2C-7E5D-4BBD-98CA-320474871548}" />
+            </and>
+            <condition
+              id="{5DE6D53E-EA62-4D17-8BDD-FEBCD80AC07B}"
+              uid="1CB281C93AD04711AA59E8BEE96DB984"
+              templateid="{DAF085E8-602E-43A6-8299-038FF171349F}" />
+          </or>
         </conditions>
       </rule>
     </ruleset>
@@ -28,12 +42,13 @@ SharedFields:
             Write-Verbose "Cmdlet UploadImageToContentHub - Begin"
             Import-Function Upload
             Import-Function Authenticate
+            Import-Function GeneratePublicURL
             $authResponse = Authenticate
         }
         process {
             Write-Verbose "Cmdlet UploadImageToContentHub - Process"
             $item = Get-Item .
-            Upload -item $item -token $authResponse.token
+            Upload -item $item -token $authResponse.token        
         }
         end {
             Write-Verbose "Cmdlet UploadImageToContentHub - End"
@@ -58,11 +73,11 @@ Languages:
         sitecore\tpanchal
     - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
       Hint: __Revision
-      Value: "613b771d-1681-4b71-b168-8e6e73940f97"
+      Value: "aa76f202-9369-4e35-9d53-64e3c7622d92"
     - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
       Hint: __Updated by
       Value: |
         sitecore\Admin
     - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
       Hint: __Updated
-      Value: 20240302T123005Z
+      Value: 20240302T234650Z
