@@ -1,0 +1,122 @@
+﻿---
+ID: "a1a33c37-c4c6-47aa-8c78-071f082b980b"
+Parent: "6c950601-98fb-4f5d-8adb-0224a32df9b4"
+Template: "dd22f1b3-bd87-4db2-9e7d-f7a496888d43"
+Path: /sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub/Media Migration to Content Hub/Functions/Authenticate
+SharedFields:
+- ID: "b1a94ff0-6897-47c0-9c51-aa6acb80b1f0"
+  Hint: Script
+  Value: |
+    function Authenticate {
+        [CmdletBinding()]
+        param()
+        
+        begin {
+            Write-Verbose "Cmdlet Authenticate - Begin"
+            Import-Function Send-HttpRequest
+    		$configurationItem = "master:/sitecore/system/Settings/Content-Hub-Configuration"
+            $settings = New-Object PSObject @{
+                HostUri = "https://ps-ch-playground.sitecoresandbox.cloud"
+                TokenItem = "master:/sitecore/system/Settings/Content-Hub-Configuration/Token"
+            }
+            $hostUri = $settings.HostUri
+        }
+        process {
+            Write-Verbose "Cmdlet Authenticate - Process"
+            $has_token = $false
+            $token = $null
+            $tokenIsValid = $false
+            $tokenItemExists = $false
+    		#$ConfigurationItemExists = Get-Item -Path $configurationItem 
+    		$isConfigItemExists = Test-Path -Path $configurationItem
+    		if(!$isConfigItemExists)
+    		{
+    			New-Item -Path $configurationItem -ItemType "{A87A00B1-E6DB-45AB-8B54-636FEC3B5523}"
+    		}
+    		
+            if(Test-Path -Path $settings.TokenItem) {
+                $tokenItemExists = $true
+                $tokenItem = Get-Item -Path $settings.TokenItem
+                if($tokenItem) {
+                    $token = $tokenItem.Fields["Phrase"].Value
+                    if($token) {
+                        $has_token = $true
+                    }
+                    $checkResponse = Send-HttpRequest -uri "$hostUri/api/search?take=1" -method "GET" -token $token
+                    if($checkResponse.response.StatusCode -eq "OK") {
+                        Write-Log -Log Info "Token is valid"
+                        $tokenIsValid = $true
+                    }
+                }
+            }
+            if($has_token -and $tokenIsValid) {
+                $return = New-Object PSObject @{
+                    token = $token
+                }
+                $return
+            }
+            else {
+                $userName = Read-Host "Username"
+                $password = Read-Host "Password" -AsSecureString
+                $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
+                
+                $body = @{
+                    user_name = $userName
+                    password = $password
+                } | ConvertTo-Json
+                $content = [System.Net.Http.StringContent]::new($body, [System.Text.Encoding]::UTF8, "application/json")
+                $response = Send-HttpRequest -uri "$hostUri/api/authenticate" -method "POST" -content $content
+                if($response.response.StatusCode -eq "OK")
+                {
+                    $token = $response.content.token
+                    if(!$tokenItemExists) {
+                        $tokenItem = New-Item -Path $settings.TokenItem -ItemType "{6D1CD897-1936-4A3A-A511-289A94C2A7B1}"    
+                    }
+                    else {
+                        $tokenItem = Get-Item -Path $settings.TokenItem
+                    }
+                    $tokenItem.Editing.BeginEdit()
+                    $tokenItem["Phrase"] = $token
+                    $tokenItem.Editing.EndEdit()
+                    $response.content
+                }
+                else {
+                    Write-Log -Log Error "Cmdlet Authenticate -Exception"
+                    Write-Log -Log Error $response.response
+                    Write-Log -Log Error $response.content
+                    throw "Error occured during authentication"
+                }
+                
+            }
+            
+        }
+        end {
+            Write-Verbose "Cmdlet Authenticate - End"
+        }
+    }
+Languages:
+- Language: en
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "25bed78c-4957-4165-998a-ca1b52f67497"
+      Hint: __Created
+      Value: 20240302T134246Z
+    - ID: "52807595-0f8f-4b20-8d2a-cb71d28c6103"
+      Hint: __Owner
+      Value: |
+        sitecore\dkakade
+    - ID: "5dd74568-4d4b-44c1-b513-0af5f4cda34f"
+      Hint: __Created by
+      Value: |
+        sitecore\dkakade
+    - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
+      Hint: __Revision
+      Value: "99cf5093-1a65-4ae3-bbd4-8f3ef88f0a64"
+    - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
+      Hint: __Updated by
+      Value: |
+        sitecore\dkakade
+    - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
+      Hint: __Updated
+      Value: 20240302T140448Z
