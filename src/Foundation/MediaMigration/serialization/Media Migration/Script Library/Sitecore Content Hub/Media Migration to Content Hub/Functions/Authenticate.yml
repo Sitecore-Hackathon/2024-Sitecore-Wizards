@@ -14,6 +14,7 @@ SharedFields:
         begin {
             Write-Verbose "Cmdlet Authenticate - Begin"
             Import-Function Send-HttpRequest
+    		#Configuration Folder Item - in which the Token will be created.
     		$configurationItem = "master:/sitecore/system/Settings/Content-Hub-Configuration"
             $settings = New-Object PSObject @{
                 HostUri = "https://ps-ch-playground.sitecoresandbox.cloud"
@@ -26,15 +27,17 @@ SharedFields:
             $has_token = $false
             $token = $null
             $tokenIsValid = $false
-            $tokenItemExists = $false
-    		#$ConfigurationItemExists = Get-Item -Path $configurationItem 
+            $tokenItemExists = Test-Path -Path $settings.TokenItem
+    		#Checking if the Configuration Folder Item exists or not in the Sitecore Tree.
     		$isConfigItemExists = Test-Path -Path $configurationItem
+    		#If the Configuration Folder Item doesn't exist, create one, based on the Folder Template {A87A00B1-E6DB-45AB-8B54-636FEC3B5523}
     		if(!$isConfigItemExists)
     		{
     			New-Item -Path $configurationItem -ItemType "{A87A00B1-E6DB-45AB-8B54-636FEC3B5523}"
     		}
     		
-            if(Test-Path -Path $settings.TokenItem) {
+    		#If the Token item exists, Read the value of the field Phrase
+            if($tokenItemExists) {
                 $tokenItemExists = $true
                 $tokenItem = Get-Item -Path $settings.TokenItem
                 if($tokenItem) {
@@ -42,6 +45,7 @@ SharedFields:
                     if($token) {
                         $has_token = $true
                     }
+    				#Checking the response to see, if the Token is Valid
                     $checkResponse = Send-HttpRequest -uri "$hostUri/api/search?take=1" -method "GET" -token $token
                     if($checkResponse.response.StatusCode -eq "OK") {
                         Write-Log -Log Info "Token is valid"
@@ -49,6 +53,8 @@ SharedFields:
                     }
                 }
             }
+    		#Check for if there is a token generated, and if it is Valid, 
+    		#If not, take the credentials from the user and generate a new token
             if($has_token -and $tokenIsValid) {
                 $return = New-Object PSObject @{
                     token = $token
@@ -64,10 +70,14 @@ SharedFields:
                     user_name = $userName
                     password = $password
                 } | ConvertTo-Json
+    			#Authenticate the User and receive the Response from Content Hub
                 $content = [System.Net.Http.StringContent]::new($body, [System.Text.Encoding]::UTF8, "application/json")
                 $response = Send-HttpRequest -uri "$hostUri/api/authenticate" -method "POST" -content $content
+    			#If Successful, Save the Token in Sitecore Item.
+    			#Otherwise, Log an Error in the Script Logs for the user to see.
                 if($response.response.StatusCode -eq "OK")
                 {
+    				#Take the Token and save in Sitecore Item, of type Dictionary Entry for future references
                     $token = $response.content.token
                     if(!$tokenItemExists) {
                         $tokenItem = New-Item -Path $settings.TokenItem -ItemType "{6D1CD897-1936-4A3A-A511-289A94C2A7B1}"    
@@ -112,11 +122,11 @@ Languages:
         sitecore\tpanchal
     - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
       Hint: __Revision
-      Value: "f6b37e42-6427-450c-a03d-a33882f26bdc"
+      Value: "d4bcd5a6-bd40-44bf-8202-026ba8478f0a"
     - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
       Hint: __Updated by
       Value: |
-        sitecore\Admin
+        sitecore\varun
     - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
       Hint: __Updated
-      Value: 20240302T140150Z
+      Value: 20240302T165047Z

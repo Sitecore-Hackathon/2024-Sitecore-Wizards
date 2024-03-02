@@ -21,22 +21,24 @@ SharedFields:
         )
         
         begin {
-            Write-Verbose "Cmdlet Send-HTTPRequest - Begin"
+            Write-Verbose "Cmdlet Send-HttpRequest - Begin"
             $client = [System.Net.Http.HttpClient]::new()
         }
         process {
-            Write-Verbose "Cmdlet Send-HTTPRequest - Process"
+            Write-Verbose "Cmdlet Send-HttpRequest - Process"
             
             $requestMessage = [System.Net.Http.HttpRequestMessage]::new()
             $requestMessage.RequestUri = $uri
             $requestMessage.Method = $method
+    		#Add the Token in X-Auth-Token in the request Header
             if($token) {
                 $requestMessage.Headers.Add("X-Auth-Token", $token)
             }
+    		#Configure the Content as Request Content
             if($content) {
                 $requestMessage.Content = $content
             }
-            
+            #Send an Async Request
             $responseMessage = $client.SendAsync($requestMessage).GetAwaiter().GetResult()
             $responseContent = $responseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult()
             $responseContent = ConvertFrom-Json $([String]::new($responseContent))
@@ -45,12 +47,12 @@ SharedFields:
                 response = $responseMessage
                 content = $responseContent
             }
-            
+            #Return the response
             $returnObject
         }
         end {
             $client.Dispose()
-            Write-Verbose "Cmdlet Send-HTTPRequest - End"
+            Write-Verbose "Cmdlet Send-HttpRequest - End"
         }
     }
 Languages:
@@ -71,11 +73,11 @@ Languages:
         sitecore\tpanchal
     - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
       Hint: __Revision
-      Value: "9f44cab8-9f6a-440e-9f86-3fcc6cbe9e35"
+      Value: "605d2137-5020-4c56-9ace-3932f79ca514"
     - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
       Hint: __Updated by
       Value: |
-        sitecore\tpanchal
+        sitecore\varun
     - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
       Hint: __Updated
-      Value: 20240302T111837Z
+      Value: 20240302T165352Z

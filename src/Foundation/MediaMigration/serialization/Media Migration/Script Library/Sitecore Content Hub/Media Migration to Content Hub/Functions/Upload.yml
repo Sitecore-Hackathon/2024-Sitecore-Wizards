@@ -16,7 +16,7 @@ SharedFields:
             [String]$token
             )
         begin {
-            Write-Verbose "Cmdlet Upload - Begin"
+            Write-Verbose "Upload - Begin"
             Import-Function Authenticate
             Import-Function Send-HttpRequest
     		
@@ -27,179 +27,202 @@ SharedFields:
             $hostUri = $uploadsettings.HostUri
             
             $itemPath = $item.Paths.FullPath
-            $DEFAULT_CHUNK_SIZE = 1000000
-            Write-Log -Log Info "========================Upload start. (Item: $itemPath)========================"
+            $DEFAULT_CHUNK_SIZE = 100000000000000
+            Write-Log -Log Info "Starting the Upload for Item: $itemPath"
         }
         process {
-            Write-Verbose "Cmdlet Upload - Process"        
+            Write-Verbose "Upload - Process"        
             
             $content = [System.Net.Http.StringContent]::new($body, [System.Text.Encoding]::UTF8, "application/json")
+    		#Take the Sitecore Item ID
             $itemId = $item.Id
+    		#Query in Content Hub, using Sitecore Item ID, to check if the Item already exists in Content Hub, or is it a New item
             $response = Send-HttpRequest -uri "$hostUri/api/entities/query?query=String('SitecoreItemId')=='$itemId'" -method "GET" -token $token
             $itemExists = $false
-            if($response.response.StatusCode -eq "OK")
-            {
-                $content = $response.content
-                Write-Log -Log Info $content
-                if($content.total_items -eq 1){
-                    $itemExists = $true  				
-                }
-            }
-            else {
-                Write-Log -Log Error "Cmdlet Check-AssetExistsBySitecoreId -Exception"
-                Write-Log -Log Error $response.response
-                Write-Log -Log Error $response.conten
-                throw "Error occured during authentication"
-            }
-    		
-            if($itemExists)
-            {
-    			Write-Verbose "Upload Skip, As media item is alredy exists in Content Hub. Item Path: $itemPath"
-            }
-            else {
-                $mediaItem = [Sitecore.Data.Items.MediaItem]$item
-    			$blobField = $mediaItem.InnerItem.Fields["blob"]
-    			$blobStream = $blobField.GetBlobStream()        
-                $fileSize = $blobStream.Length
-                $fileExtension = $item.Fields["Extension"].Value
-                $fileName = $item.Name + "." + $fileExtension
-                
-                $body = @{
-                file_name = $fileName
-                file_size = $fileSize
-                upload_configuration = @{name = "AssetUploadConfiguration"}
-                action = @{ name = "NewAsset"}} | ConvertTo-Json
-    			$content = [System.Net.Http.StringContent]::new($body, [System.Text.Encoding]::UTF8, "application/json")
-    			$response = Send-HttpRequest -uri "$hostUri/api/v2.0/upload" -method "POST" -content $content -token $token
-    			if($response.response.StatusCode -eq "Created") {
-    								
-    				$return = New-Object PSObject @{
-    					UploadIdentifier = $response.content.upload_identifier
-    					FileIdentifier = $response.content.file_identifier
-    					ProcessUri = $response.response.Headers.Location
+    			#Check the Response. 
+    			#If something is wrong, log the Error for the User to check.
+    			if($response.response.StatusCode -eq "OK")
+    			{
+    				$content = $response.content
+    				Write-Log -Log Info $content
+    				#If the count is 1, which means the item already exists in Content Hub. Which means, it doesn't need to be uploaded again.
+    				if($content.total_items -eq 1){
+    					$itemExists = $true  				
     				}
-    				
-    				if($blobStream.Length -ge $DEFAULT_CHUNK_SIZE) {
-                Write-Log -Log Info "Uploading file in chunks of 1 MB each"
-                $totalChunks = [Math]::Ceiling([Decimal]$blobStream.Length / [Decimal]$DEFAULT_CHUNK_SIZE)
-                $buffer = New-Object byte[] $DEFAULT_CHUNK_SIZE
-                $chunkIndex = 0
-                $loop = 1
-                
-                $uploadProcessUri = "$response.response.Headers.Location&chunks=$totalChunks"
-                
-                while($loop -eq 1) {
-                    $bytes_read = $blobStream.Read($buffer, 0, $buffer.Length)
-                    if($bytes_read -gt 0) {
-                        # Send the file chunk to CH
-                        $byteArrayContent = [System.Net.Http.ByteArrayContent]::new($buffer, 0, $buffer.Length)
-                        $multiPartFormDataContent = [System.Net.Http.MultipartFormDataContent]::new()
-                        $multiPartFormDataContent.Add($byteArrayContent, "file", $fileName)
-                        $uri = "$uploadProcessUri&chunk=$chunkIndex"
-                        $response = Send-HttpRequest -uri $uri -content $multiPartFormDataContent -token $token -method "POST"
-                        $status = $response.response.StatusCode
-                        if($status -ne "OK") {
-                            Write-Log -Log Error "Chunk ($chunk_index) upload failed. (Item: $itemPath)"
-                            Write-Log -Log Error $response.response
-                            Write-Log -Log Error $response.content
-                            throw "Error occurred while uploading file chunk to Content Hub"
-                        }
-                        Write-Verbose "Chunk $chunkIndex response"
-                        Write-Verbose $response.response
-                        Write-Verbose $response.content
-                        $chunkIndex = $chunkIndex + 1
-                    }
-                    else {
-                        # Exit the loop after processing all chunks
-                        $loop = 0
-                    }
-                }
-                
-                $finalChunkResponse = Send-HttpRequest -uri $uploadProcessUri -method "POST" -token $token
-                # Write-Host $finalChunkResponse.response
-                if($finalChunkResponse.response.StatusCode -ne "OK") {
-                    throw "Error occurred while processing final chunk request"
-                }
-            }
-            else {
-                # Send entire file to CH
-                Write-Log -Log Info "Uploading entire file"
-                $multipartFormDataContent = [System.Net.Http.MultipartFormDataContent]::new()
-                $multipartFormDataContent.Add([System.Net.Http.StreamContent]::new($blobStream), "file", $fileName)
-                $response = Send-HttpRequest -uri $response.response.Headers.Location -method "POST" -token $token -content $multipartFormDataContent
-                if($response.statusCode -ne "OK") {
-                    Write-Log -Log Error "File upload failed. (Item: $itemPath)"
-                    Write-Log -Log Error $response.response
-                    Write-Log -Log Error $response.content
-                    throw "Error occurred while uploading the file to Content Hub"
-                }
-            }
-    		Write-Host "Line 128"
-    		Write-Host "$response.content.upload_identifier"
-    		Write-Host $return.UploadIdentifier
-    		Write-Host "$response.content.file_identifier"
-    		Write-Host $return.FileIdentifier
-    		$finalBody = @{
-                upload_identifier = $return.UploadIdentifier
-                file_identifier = $return.FileIdentifier
-            } | ConvertTo-Json
-            
-            $content = [System.Net.Http.StringContent]::new($finalBody, [System.Text.Encoding]::UTF8, "application/json")
-            $response = Send-HttpRequest -uri "$hostUri/api/v2.0/upload/finalize" -content $content -token $token -method "POST"
-            Write-Host "Line 137"
-    		if($response.response.StatusCode -eq "OK") {
-                $result = New-Object PSObject @{
-                    Link = $response.response.Headers.Location
-                    AssetId = $response.content.asset_id
-                    AssetIdentifier = $response.content.asset_identifier
-                }
-    			
-                #Close the stream to release memory
-                $blobStream.Close()
-    			
-    			$entityPropertyBody = @{
-                properties = @{
-                    SitecoreItemId = $item.Id.ToString()
-                    SitecoreItemPath = $item.Paths.FullPath
-                    alttext = $item.Fields["Alt"].Value
-                }
-                self = @{
-                    href = $response.response.Headers.Location
-                }
-                entitydefinition = @{
-                    href = "$chHost/api/entitydefinitions/M.Asset"
-                }
-            } | ConvertTo-Json
-            $content = [System.Net.Http.StringContent]::new($entityPropertyBody, [System.Text.Encoding]::UTF8, "application/json")
-            $response = Send-HttpRequest -uri $response.response.Headers.Location -token $token -content $content -method "PUT"
-            if($response.response.StatusCode -ne "OK") {
-                Write-Log -Log Error "Error occured while updating entity properties (id: $assetId, identifier: $assetIdentifier)"
-                Write-Log -Log Error response
-                Write-Log -Log Error $response.response
-                Write-Log -Log Error $response.content
-            }
-    		
-            }
-            else {
-                Write-Log -Log Error "Cmdlet Finalize-Upload -Exception"
-                Write-Log -Log Error $response.response
-                Write-Log -Log Error $response.content
-                throw "Error occured during finalizing file upload"
-            }
-    		
     			}
     			else {
-    				Write-Log -Log Error "======== Upload initialization -Exception ========"
+    				Write-Log -Log Error "Something went wrong while querying for the Item in Content Hub."
     				Write-Log -Log Error $response.response
-    				Write-Log -Log Error $response.content
-    				throw "Error occured while initializing upload"
+    				Write-Log -Log Error $response.conten
+    				throw "Error occured during authentication"
     			}
-    			            
-            }
+    			
+    			#If the Item already Exists in Content Hub, great, no need to duplicate/upload it. End it here.
+    			#If not, Execyte the whole process of Media Item Upload 
+    			if($itemExists)
+    			{
+    				Write-Verbose "Media Item already exists in Content Hub at $itempath Hence, Skipping the Upload."
+    			}
+    			else {
+    				Write-Verbose "The Media Item is new, and doesn't exist in Content Hub. Let's Upload it."
+    				#Media Item from Sitecore Item
+    				$mediaItem = [Sitecore.Data.Items.MediaItem]$item
+    				#Read the inner Blob
+    				$blobField = $mediaItem.InnerItem.Fields["blob"]
+    				#Generate the BlobStream
+    				$blobStream = $blobField.GetBlobStream()
+    				#Take the Size of the Blob
+    				$fileSize = $blobStream.Length
+    				#Extension of the File to be uploaded
+    				$fileExtension = $item.Fields["Extension"].Value
+    				#The whole file name, along with the 
+    				$fileName = $item.Name + "." + $fileExtension
+    				
+    				$body = @{
+    				file_name = $fileName
+    				file_size = $fileSize
+    				upload_configuration = @{name = "AssetUploadConfiguration"}
+    				action = @{ name = "NewAsset"}} | ConvertTo-Json
+    				#Getting the Content ready for the Upload to Content Hub
+    				$content = [System.Net.Http.StringContent]::new($body, [System.Text.Encoding]::UTF8, "application/json")
+    				$response = Send-HttpRequest -uri "$hostUri/api/v2.0/upload" -method "POST" -content $content -token $token
+    				if($response.response.StatusCode -eq "Created") {
+    									
+    					$return = New-Object PSObject @{
+    						UploadIdentifier = $response.content.upload_identifier
+    						FileIdentifier = $response.content.file_identifier
+    						ProcessUri = $response.response.Headers.Location
+    					}
+    					#If Blob size is greater than the Default Chunk Size, which means it needs to be divided into chunks of 1 MB and then transfered.
+    					if($blobStream.Length -ge $DEFAULT_CHUNK_SIZE) {
+    				Write-Log -Log Info "Uploading file in chunks of 1 MB each"
+    				$totalChunks = [Math]::Ceiling([Decimal]$blobStream.Length / [Decimal]$DEFAULT_CHUNK_SIZE)
+    				$buffer = New-Object byte[] $DEFAULT_CHUNK_SIZE
+    				$chunkIndex = 0
+    				$loop = 1
+    				
+    				$uploadProcessUri = "$response.response.Headers.Location&chunks=$totalChunks"
+    				
+    				while($loop -eq 1) {
+    					$bytes_read = $blobStream.Read($buffer, 0, $buffer.Length)
+    					if($bytes_read -gt 0) {
+    						# Send the file chunk to CH
+    						$byteArrayContent = [System.Net.Http.ByteArrayContent]::new($buffer, 0, $buffer.Length)
+    						$multiPartFormDataContent = [System.Net.Http.MultipartFormDataContent]::new()
+    						$multiPartFormDataContent.Add($byteArrayContent, "file", $fileName)
+    						$uri = "$uploadProcessUri&chunk=$chunkIndex"
+    						$response = Send-HttpRequest -uri $uri -content $multiPartFormDataContent -token $token -method "POST"
+    						$status = $response.response.StatusCode
+    						if($status -ne "OK") {
+    							Write-Log -Log Error "Chunk ($chunk_index) upload failed. (Item: $itemPath)"
+    							Write-Log -Log Error $response.response
+    							Write-Log -Log Error $response.content
+    							throw "Error occurred while uploading file chunk to Content Hub"
+    						}
+    						Write-Verbose "Chunk $chunkIndex response"
+    						Write-Verbose $response.response
+    						Write-Verbose $response.content
+    						$chunkIndex = $chunkIndex + 1
+    					}
+    					else {
+    						# Exit the loop after processing all chunks
+    						$loop = 0
+    					}
+    				}
+    				
+    				$finalChunkResponse = Send-HttpRequest -uri $uploadProcessUri -method "POST" -token $token
+    				
+    				if($finalChunkResponse.response.StatusCode -ne "OK") {
+    					throw "Error occurred while processing final chunk request"
+    				}
+    			}
+    			else {
+    				# Send entire file to CH
+    				Write-Log -Log Info "Uploading entire file in one go, as its smaller than the DEFAULT_CHUNK_SIZE"
+    				$multipartFormDataContent = [System.Net.Http.MultipartFormDataContent]::new()
+    				$multipartFormDataContent.Add([System.Net.Http.StreamContent]::new($blobStream), "file", $fileName)
+    				$response = Send-HttpRequest -uri $response.response.Headers.Location -method "POST" -token $token -content $multipartFormDataContent
+    				if($response.statusCode -ne "OK") {
+    					Write-Log -Log Error "File upload failed. (Item: $itemPath)"
+    					Write-Log -Log Error $response.response
+    					Write-Log -Log Error $response.content
+    					throw "Error occurred while uploading the file to Content Hub"
+    				}
+    			}
+    			Write-Host "Finalize Upload"
+    			Write-Host $return.UploadIdentifier		
+    			Write-Host $return.FileIdentifier
+    			#Finalize Upload - Request Content Body
+    			$finalBody = @{
+    				upload_identifier = $return.UploadIdentifier
+    				file_identifier = $return.FileIdentifier
+    			} | ConvertTo-Json
+    			
+    			#Creating the Content for Finalize Request
+    			$content = [System.Net.Http.StringContent]::new($finalBody, [System.Text.Encoding]::UTF8, "application/json")
+    			#Sending the Request for Finalize Upload
+    			$response = Send-HttpRequest -uri "$hostUri/api/v2.0/upload/finalize" -content $content -token $token -method "POST"
+    			
+    				#Checking if the Respose is good, or is there an error.
+    				if($response.response.StatusCode -eq "OK") {
+    					$result = New-Object PSObject @{
+    						Link = $response.response.Headers.Location
+    						AssetId = $response.content.asset_id
+    						AssetIdentifier = $response.content.asset_identifier
+    					}
+    					
+    					#Close the stream to release memory
+    					$blobStream.Close()
+    					
+    					#Update the Content Hub Item, with Properties from Sitecore
+    					#Item ID, Item Path and Alt Text from Sitecore.
+    					$entityPropertyBody = @{
+    					properties = @{
+    						SitecoreItemId = $item.Id.ToString()
+    						SitecoreItemPath = $item.Paths.FullPath
+    						alttext = $item.Fields["Alt"].Value
+    					}
+    					self = @{
+    						href = $response.response.Headers.Location
+    					}
+    					#To be saved in the M.Asset Definition
+    					entitydefinition = @{
+    						href = "$chHost/api/entitydefinitions/M.Asset"
+    					}
+    				} | ConvertTo-Json
+    				#Getting the Content Ready to update the Entity M Asset
+    				$content = [System.Net.Http.StringContent]::new($entityPropertyBody, [System.Text.Encoding]::UTF8, "application/json")
+    				#Sending the Request to update the entity properties
+    				$response = Send-HttpRequest -uri $response.response.Headers.Location -token $token -content $content -method "PUT"
+    						#In case something goes wrong, Log in the Script Logs, for the user to check.
+    						if($response.response.StatusCode -ne "OK") {
+    							Write-Log -Log Error "Error occured while updating entity properties (id: $assetId, identifier: $assetIdentifier)"
+    							Write-Log -Log Error response
+    							Write-Log -Log Error $response.response
+    							Write-Log -Log Error $response.content
+    						}
+    				
+    					}
+    					else {
+    						Write-Log -Log Error "Something Went wrong while Finalize Upload."
+    						Write-Log -Log Error $response.response
+    						Write-Log -Log Error $response.content
+    						throw "Error occured during finalizing file upload"
+    					}
+    			
+    				}
+    				else {
+    					Write-Log -Log Error "Something went wrong while Initializing the Upload "
+    					Write-Log -Log Error $response.response
+    					Write-Log -Log Error $response.content
+    					throw "Error occured while initializing upload"
+    				}
+    							
+    			}
         }
         end {
-            Write-Log -Log Info "========================Upload end. (Item: $itemPath)========================"
-            Write-Verbose "Cmdlet Upload - End"
+            Write-Log -Log Info "Content Hub Upload ends for the Item: $itemPath"
+            Write-Verbose "Upload - End"
         }
     }
 Languages:
@@ -220,11 +243,11 @@ Languages:
         sitecore\tpanchal
     - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
       Hint: __Revision
-      Value: "bcee6356-172b-4166-84fd-d0b357ae5fa4"
+      Value: "a37f1365-2e39-47e7-adb3-9fdaaa32927e"
     - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
       Hint: __Updated by
       Value: |
-        sitecore\Admin
+        sitecore\varun
     - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
       Hint: __Updated
-      Value: 20240302T130157Z
+      Value: 20240302T203359Z
