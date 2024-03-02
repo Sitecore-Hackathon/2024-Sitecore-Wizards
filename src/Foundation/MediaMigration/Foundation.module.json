@@ -6,17 +6,17 @@
                 "name": "Media Migration",
                 "path": "/sitecore/system/Modules/PowerShell/Script Library",
                 "database": "master",
-				"rules": [
-				  {
-					"path": "/Sitecore Content Hub",
-					"scope": "ItemAndDescendants",
-					"allowedPushOperations": "createUpdateAndDelete"
-				  },
-				  {
-					"path": "*",
-					"scope": "ignored"
-				  }
-				  ]
+                "rules": [
+                    {
+                        "path": "/Sitecore Content Hub",
+                        "scope": "ItemAndDescendants",
+                        "allowedPushOperations": "createUpdateAndDelete"
+                    },
+                    {
+                        "path": "*",
+                        "scope": "ignored"
+                    }
+                ]
             }
         ]
     }
