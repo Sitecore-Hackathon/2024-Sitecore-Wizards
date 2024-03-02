@@ -1,0 +1,31 @@
+﻿---
+ID: "a6d377c8-77ba-4781-828f-b2b5b700231a"
+Parent: "25832c55-7c92-4b97-b75e-9f54135b0457"
+Template: "6d82fcd8-c379-443c-97a9-c6423c71e7d5"
+Path: /sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub/Update Media References
+Languages:
+- Language: en
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "25bed78c-4957-4165-998a-ca1b52f67497"
+      Hint: __Created
+      Value: 20240302T094945Z
+    - ID: "52807595-0f8f-4b20-8d2a-cb71d28c6103"
+      Hint: __Owner
+      Value: |
+        sitecore\tpanchal
+    - ID: "5dd74568-4d4b-44c1-b513-0af5f4cda34f"
+      Hint: __Created by
+      Value: |
+        sitecore\tpanchal
+    - ID: "8cdc337e-a112-42fb-bbb4-4143751e123f"
+      Hint: __Revision
+      Value: "ca666c0f-04ab-4a04-93f8-c255bb5336d9"
+    - ID: "badd9cf9-53e0-4d0c-bcc0-2d784c282f6a"
+      Hint: __Updated by
+      Value: |
+        sitecore\tpanchal
+    - ID: "d9cf14b1-fa16-4ba6-9288-e8a174d4d522"
+      Hint: __Updated
+      Value: 20240302T094945Z
