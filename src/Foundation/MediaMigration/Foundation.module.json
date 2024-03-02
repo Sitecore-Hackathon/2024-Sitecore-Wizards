@@ -1,0 +1,12 @@
+﻿{
+    "namespace": "Foundation.MediaMigration",
+    "items": {
+        "includes": [
+            {
+                "name": "Media Migration",
+                "path": "/sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub",
+                "database": "master"
+            }
+        ]
+    }
+}

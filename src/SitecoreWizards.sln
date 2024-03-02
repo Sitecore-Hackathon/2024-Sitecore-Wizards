@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34031.279
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31728.76
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Feature", "Feature", "{D0BE80FB-F37D-4792-8BC3-5886368EE91A}"
+	ProjectSection(SolutionItems) = preProject
+		Feature\Feature.module.json = Feature\Feature.module.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Foundation", "Foundation", "{1FCEDCCA-F333-4091-8EC3-4B9932026420}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{2810BCBA-DF96-4E34-A519-695D50725E48}"
+	ProjectSection(SolutionItems) = preProject
+		Project\Project.module.json = Project\Project.module.json
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaMigration", "Foundation\MediaMigration\MediaMigration.csproj", "{8B1C974E-7009-4F06-B011-D3CB49B9FD0E}"
 EndProject

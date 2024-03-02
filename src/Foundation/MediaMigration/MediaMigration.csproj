@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Config\Include\Foundation\MediaMigration.config" />
+    <Content Include="Foundation.module.json" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
