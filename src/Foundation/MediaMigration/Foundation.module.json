@@ -4,8 +4,19 @@
         "includes": [
             {
                 "name": "Media Migration",
-                "path": "/sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub",
-                "database": "master"
+                "path": "/sitecore/system/Modules/PowerShell/Script Library",
+                "database": "master",
+				"rules": [
+				  {
+					"path": "/Sitecore Content Hub",
+					"scope": "ItemAndDescendants",
+					"allowedPushOperations": "createUpdateAndDelete"
+				  },
+				  {
+					"path": "*",
+					"scope": "ignored"
+				  }
+				  ]
             }
         ]
     }
