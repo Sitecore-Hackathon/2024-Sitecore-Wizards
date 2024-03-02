@@ -4,13 +4,21 @@
     "src/*/*/*.module.json"
   ],
   "plugins": [
-    "Sitecore.DevEx.Extensibility.Serialization@4.1.1",
-    "Sitecore.DevEx.Extensibility.Publishing@4.1.1"
+    "Sitecore.DevEx.Extensibility.Serialization@5.2.114",
+    "Sitecore.DevEx.Extensibility.Publishing@5.2.113"
   ],
   "serialization": {
     "defaultMaxRelativeItemPathLength": 120,
-    "defaultModuleRelativeSerializationPath": "items",
+    "defaultModuleRelativeSerializationPath": "serialization",
     "removeOrphansForRoles": true,
+    "removeOrphansForUsers": true,
+    "continueOnItemFailure": false,
     "excludedFields": []
+  },
+  "settings": {
+    "telemetryEnabled": true,
+    "cacheAuthenticationToken": true,
+    "versionComparisonEnabled": true,
+    "apiClientTimeoutInMinutes": 5
   }
 }
