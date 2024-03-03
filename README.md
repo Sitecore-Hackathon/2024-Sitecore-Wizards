@@ -71,6 +71,8 @@
 <img width="479" alt="image" src="https://github.com/Sitecore-Hackathon/2024-Sitecore-Wizards/assets/80135943/98a51f6e-b79f-4182-a5b2-240a62eec740">
 
 
+Note: The Media items uploaded in Sitecore Content Hub Dam, will be available in the Create Section.
+
 
 ## Comments
 
