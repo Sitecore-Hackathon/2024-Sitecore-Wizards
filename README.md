@@ -79,4 +79,5 @@ Note: The Media items uploaded in Sitecore Content Hub Dam, will be available in
 Future Enhancements:
 - The module can be extended to support Media items other than Image and Jpeg types.
 - The module can be extended to have bulk Media Upload, specifically, the whole folder, to have all the media items in Content Hub in one go.
+- The module can be extended to automatically approve the media item in Content Hub, so that it is available in Final Workflow State and is accessed through the Assets section.
 - WE are already generating the public link for the uploaded media items. We could install and configure the Cotnent Hub DAM Connector in Sitecore, and utilize this public link, such that, as soon as the Media item is uploaded in Content Hub, and Public Link is generated, the Module scans the complete content tree, and finds where all the given Media Item ID is available. It can then replace that with the Public Link URL.
