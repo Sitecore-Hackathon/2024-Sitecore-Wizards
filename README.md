@@ -1,19 +1,6 @@
 ![Hackathon Logo](docs/images/hackathon.png?raw=true "Hackathon Logo")
 # Sitecore Hackathon 2024
 
-- MUST READ: **[Submission requirements](SUBMISSION_REQUIREMENTS.md)**
-- [Entry form template](ENTRYFORM.md)
-  
-# Hackathon Submission Entry form
-
-> __Important__  
-> 
-> Copy and paste the content of this file into README.md or face automatic __disqualification__  
-> All headlines and subheadlines shall be retained if not noted otherwise.  
-> Fill in text in each section as instructed and then delete the existing text, including this blockquote.
-
-You can find a very good reference to Github flavoured markdown reference in [this cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet). If you want something a bit more WYSIWYG for editing then could use [StackEdit](https://stackedit.io/app) which provides a more user friendly interface for generating the Markdown code. Those of you who are [VS Code fans](https://code.visualstudio.com/docs/languages/markdown#_markdown-preview) can edit/preview directly in that interface too.
-
 ## Team name
 ⟹ Sitecore Wizards
 
@@ -30,10 +17,8 @@ You can find a very good reference to Github flavoured markdown reference in [th
 ⟹ The Module works for Sitecore XM/XP as well as for Sitecore XM Cloud.
 
 ## Video link
-⟹ Provide a video highlighing your Hackathon module submission and provide a link to the video. You can use any video hosting, file share or even upload the video to this repository. _Just remember to update the link below_
 
 ⟹ Link to the Video: https://www.youtube.com/watch?v=KgyZI17U_bw
-
 
 
 ## Pre-requisites and Dependencies
@@ -52,9 +37,6 @@ You can find a very good reference to Github flavoured markdown reference in [th
 1. Use the Sitecore Installation wizard to install the [package](Sitecore Media Migration Module-1.0.zip)
 2. Once the package is installed, keep the Restart with Sitecore client checked and close the wizard.
 <img width="275" alt="image" src="https://github.com/Sitecore-Hackathon/2024-Sitecore-Wizards/assets/80135943/da2bebaf-e217-47fd-ade1-d7c7df861a55">
-
-
-
 
 
 ## Usage instructions
