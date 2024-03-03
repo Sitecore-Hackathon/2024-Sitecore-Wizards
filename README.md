@@ -30,7 +30,7 @@ You can find a very good reference to Github flavoured markdown reference in [th
 ## Video link
 ⟹ Provide a video highlighing your Hackathon module submission and provide a link to the video. You can use any video hosting, file share or even upload the video to this repository. _Just remember to update the link below_
 
-⟹ [Replace this Video link](#video-link)
+⟹ Link to the Video: https://www.youtube.com/watch?v=KgyZI17U_bw
 
 
 
@@ -47,15 +47,15 @@ You can find a very good reference to Github flavoured markdown reference in [th
 ## Installation instructions
 ⟹ Write a short clear step-wise instruction on how to install your module.  
 
-1. Use the Sitecore Installation wizard to install the [package]()
+1. Use the Sitecore Installation wizard to install the [package](Sitecore Media Migration Module-1.0.zip)
 2. Once the package is installed, keep the Restart with Sitecore client checked and close the wizard.
 <img width="275" alt="image" src="https://github.com/Sitecore-Hackathon/2024-Sitecore-Wizards/assets/80135943/da2bebaf-e217-47fd-ade1-d7c7df861a55">
 
-3.  Next, Open Content Editor, and go to the item: '/sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub/Media Migration to Content Hub' and select the checkbox to Enable the Module.
+3.  Next, Open Content Editor, and go to the item: '/sitecore/system/Modules/PowerShell/Script Library/Sitecore Content Hub/Media Migration to Content Hub' and confirm that the checkbox to Enable the Module is checked. In case it is not, please check it manually.
 ![image](https://github.com/Sitecore-Hackathon/2024-Sitecore-Wizards/assets/80135943/15012fe7-a640-448f-a83f-a3aa85fbf2d3)
 
-4.  
-5. 
+4.  Go to Media Library and right click on an Image or Jpeg type of item.
+5. The Option to Upload to Content Hub will be available
 6. profit
 
 ## Usage instructions
